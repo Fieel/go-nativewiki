@@ -5,12 +5,12 @@ Simple implementation of a web server using native Go components, no external fr
 Run the webserver as such:
 
 ```bash
-go run wiki.go
+go run main.go
 ```
 
 You'll see the output in your terminale:
 ```bash
-$ go run wiki.go
+$ go run main.go
 
 Server started... listening on post 8080
 URL: http://localhost:8080/view/
