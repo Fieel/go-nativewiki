@@ -2,6 +2,6 @@
     "rootPath": "go-nativewebserver",
     "heroku": {
         "install" : [ "./..." ],
-        "goVersion": "go1.11.5"
+        "goVersion": "go1.11"
     }
 }
