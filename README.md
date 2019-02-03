@@ -8,20 +8,12 @@ Run the webserver as such:
 go run main.go
 ```
 
-You'll see the output in your terminale:
+You'll see the output in your terminal:
 ```bash
 $ go run main.go
 
 Server started... listening on post 8080
-URL: http://localhost:8080/view/
-
-*************************************
-Create a new page by visiting this url with the desired page name:
-localhost:8080/view/{newPageName}
-*************************************
-
-List of existing pages:
-http://localhost:8080/view/FirstPage
+URL: http://localhost:8080/
 ```
 
 #
@@ -51,7 +43,7 @@ These packages should be found in your local ~/go/bin folder (or wherever your G
 
 ## Pages 
 
-This simple implementation uses two html templates and .txt data sources to create and show individual pages.
+This simple implementation uses some html templates and .txt data sources to create and show individual pages.
 
 Pages are stored in the /pages subdirectory.
 
@@ -62,6 +54,8 @@ This project links to the [bulma.io](https://bulma.io) css library for quick sty
 Templates are stored in the /templates subdirectory.
 
 Two layouts are used, view.html and edit.html and are respectively used by Go whenever accessing the /view/ or /edit/ subfolder from the browser.
+
+A third custom is used by the homepage.
 
 ### Page contents
 
