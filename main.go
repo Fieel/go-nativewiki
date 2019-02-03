@@ -14,6 +14,7 @@ import (
 // Page struct (aka interface)
 type Page struct {
 	Title string
+	List  []string
 	Body  []byte
 }
 
@@ -27,10 +28,12 @@ func (p *Page) save() error {
 func loadPage(title string) (*Page, error) {
 	filename := "./pages/" + title + ".txt"
 	body, err := ioutil.ReadFile(filename)
+	list := fetchPageList()
 	if err != nil {
+		fmt.Println("loadPage() error: ", err)
 		return nil, err
 	}
-	return &Page{Title: title, Body: body}, nil
+	return &Page{Title: title, Body: body, List: list}, nil
 }
 
 // Returns the HTML view template filled with data
@@ -38,6 +41,7 @@ func loadPage(title string) (*Page, error) {
 func viewHandler(w http.ResponseWriter, r *http.Request, title string) {
 	p, err := loadPage(title)
 	if err != nil {
+		fmt.Println("viewHandler() error: ", err)
 		http.Redirect(w, r, "/edit/"+title, http.StatusFound)
 		return
 	}
@@ -48,6 +52,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request, title string) {
 func editHandler(w http.ResponseWriter, r *http.Request, title string) {
 	p, err := loadPage(title)
 	if err != nil {
+		fmt.Println("editHandler() error: ", err)
 		p = &Page{Title: title}
 	}
 	renderTemplate(w, "edit", p)
@@ -59,76 +64,116 @@ func saveHandler(w http.ResponseWriter, r *http.Request, title string) {
 	p := &Page{Title: title, Body: []byte(body)}
 	err := p.save()
 	if err != nil {
+		fmt.Println("saveHandler() error: ", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	http.Redirect(w, r, "/view/"+title, http.StatusFound)
 }
 
-var templates = template.Must(template.ParseFiles("./templates/edit.html", "./templates/view.html"))
+var templates = template.Must(template.ParseFiles(
+	"./templates/home.html",
+	"./templates/edit.html",
+	"./templates/view.html",
+	"./templates/header.html",
+	"./templates/footer.html",
+))
 
 // Inject data in the HTML template and render it
 func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
+
 	err := templates.ExecuteTemplate(w, tmpl+".html", p)
+
 	if err != nil {
+		fmt.Println("renderTemplate() error: ", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 
-var validPath = regexp.MustCompile("^/(edit|save|view)/([a-zA-Z0-9]+)$")
+// Accept only following paths
+// /
+// /view/{pagename}
+// /edit/{pagename}
+// /save/{pagename}
+var validPath = regexp.MustCompile("(^/(edit|save|view)/([a-zA-Z0-9]+))|(^/)$")
 
 // Create handler, based on given url path
 func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		m := validPath.FindStringSubmatch(r.URL.Path)
-		if m == nil {
+		if m == nil && !(r.URL.Path == "//") {
 			http.NotFound(w, r)
 			return
 		}
-		fn(w, r, m[2])
+		fn(w, r, m[3])
 	}
+}
+
+// Loads the homepage at /
+func homeHandler(w http.ResponseWriter, r *http.Request, title string) {
+	p, err := loadPage("Home")
+	if err != nil {
+		fmt.Println("homeHandler() error: ", err)
+		return
+	}
+	renderTemplate(w, "home", p)
 }
 
 // Main function, program starts here
 func main() {
+	http.HandleFunc("/", makeHandler(homeHandler))
 	http.HandleFunc("/view/", makeHandler(viewHandler))
 	http.HandleFunc("/edit/", makeHandler(editHandler))
 	http.HandleFunc("/save/", makeHandler(saveHandler))
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("assets/"))))
 
 	fmt.Println("")
-	fmt.Println("Server started... listening on post 8080")
-	fmt.Println("URL: http://localhost:8080/view/")
+	fmt.Println("Server started... listening on port 8080")
+	fmt.Println("URL: http://localhost:8080/")
 	fmt.Println("")
-	fmt.Println("*************************************")
-	fmt.Println("Create a new page by visiting this url with the desired page name:")
-	fmt.Println("localhost:8080/view/{newPageName}")
-	fmt.Println("*************************************")
-	fmt.Println("")
-	fmt.Println("List of existing pages:")
-	listExistingPages()
+	// fmt.Println("*************************************")
+	// fmt.Println("Create a new page by visiting this url with the desired page name:")
+	// fmt.Println("localhost:8080/view/{newPageName}")
+	// fmt.Println("*************************************")
+	// fmt.Println("")
+	// fmt.Println("List of existing pages:")
+	// listExistingPages(fetchPageList())
 	fmt.Println("")
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
 // Check for files in the /pages subfolder and prints their URLs
-func listExistingPages() {
+func listExistingPages(files []string) {
+	// cycle all files in the folder
+	for _, file := range files {
+		// extract name without extension and print it
+		fmt.Println("http://localhost:8080/view/" + strings.Split(file, ".")[0])
+	}
+}
+
+func fetchPageList() []string {
 	dirname := "./pages"
 
 	f, err := os.Open(dirname)
 	if err != nil {
+		fmt.Println("listExistingPages() error: ", err)
 		log.Fatal(err)
 	}
 
 	files, err := f.Readdir(-1)
 	f.Close()
 	if err != nil {
+		fmt.Println("listExistingPages() error: ", err)
 		log.Fatal(err)
 	}
 
-	// cycle all files in the folder
+	// Stores the list of available pages to show on the homepage
+	var pagesSlice []string
+
 	for _, file := range files {
-		// extract name without extension and print it
-		fmt.Println("http://localhost:8080/view/" + strings.Split(file.Name(), ".")[0])
+		pagesSlice = append(pagesSlice, strings.Split(file.Name(), ".")[0])
 	}
+
+	return pagesSlice
 }

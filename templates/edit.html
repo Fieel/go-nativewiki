@@ -1,39 +1,36 @@
-<!DOCTYPE html>
-<html>
+{{template "header"}}
 
-<head>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>{{.Title}}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.css" />
-</head>
+<section style="padding: 1.5em">
+    <nav class="breadcrumb" aria-label="breadcrumbs">
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="#">Edit</a></li>
+            <li class="is-active"><a href="/edit/{{.Title}}">{{.Title}}</a></li>
+        </ul>
+    </nav>
+</section>
 
-<body>
-
-    <section class="hero">
-        <div class="hero-body">
-            <div class="container">
-                <h1 class="title">
-                    Editing {{.Title}}
-                </h1>
-                <h2 class="subtitle">
-                    <a href="/view/{{.Title}}">View</a>
-                </h2>
-            </div>
+<section class="hero">
+    <div class="hero-body">
+        <div class="container">
+            <h1 class="title">
+                Editing {{.Title}} page
+            </h1>
+            <h2 class="subtitle">
+                <a href="/view/{{.Title}}">View</a>
+            </h2>
         </div>
-    </section>
+    </div>
+</section>
 
-    <section class="container">
-        <div class="notification">
-            <form action="/save/{{.Title}}" method="POST">
-                <textarea class="textarea" name="body" placeholder="Your new page body">{{printf "%s" .Body}}</textarea>
-                <br>
-                <input type="submit" class="button " value="Save">
-            </form>
-        </div>
-    </section>
+<section class="container">
+    <div class="notification">
+        <form action="/save/{{.Title}}" method="POST">
+            <textarea class="textarea" name="body" placeholder="Your new page body">{{printf "%s" .Body}}</textarea>
+            <br>
+            <input type="submit" class="button " value="Save">
+        </form>
+    </div>
+</section>
 
-</body>
-
-</html>
+{{template "footer"}}

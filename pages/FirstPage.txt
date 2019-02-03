@@ -1,6 +1,1 @@
-This is an example of a test page.
-
-Pages are stored in the /pages subdirectory.
-
-To create a new page just visit the following URL: localhost:8080/view/{newPageName}
-
+Random content ehe

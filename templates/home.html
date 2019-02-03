@@ -1,0 +1,49 @@
+{{template "header"}}
+
+<section class="hero">
+    <div class="hero-body">
+        <div class="container">
+            <h1 class="title">
+                Welcome to the wiki
+            </h1>
+            <h2 class="subtitle">
+                {{printf "%s" .Body}}
+            </h2>
+        </div>
+    </div>
+</section>
+
+
+
+
+
+<section class="section">
+    <div class="notification">
+        <div class="container">
+            <aside class="menu">
+                <p class="menu-label">
+                    Pages list
+                </p>
+                <ul class="menu-list">
+                    {{range .List}}
+                    <li>
+                        <a href="/view/{{.}}">
+                            {{ . }}
+                        </a>
+                    </li>
+                    {{else}}
+                    no pages
+                    {{end}}
+                </ul>
+            </aside>
+
+
+
+            <ul class="menu-list">
+
+        </div>
+    </div>
+
+</section>
+
+{{template "footer"}}
