@@ -28,3 +28,8 @@
 [prune]
   go-tests = true
   unused-packages = true
+
+[metadata.heroku]
+  root_package = "go-nativewebserver"
+  go-version = "1.11.5"
+  install = [ "./..." ]
