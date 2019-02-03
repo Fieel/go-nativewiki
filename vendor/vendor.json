@@ -1,5 +1,6 @@
 {
     "comment": "",
     "package": [],
-    "rootPath": "go-nativewebserver"
+    "rootPath": "go-nativewebserver",
+    "goVersion": "1.11.5"
 }

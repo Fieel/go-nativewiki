@@ -121,6 +121,13 @@ func homeHandler(w http.ResponseWriter, r *http.Request, title string) {
 
 // Main function, program starts here
 func main() {
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		log.Println("$PORT must be set, using 5000 as default...")
+		port = "5000"
+	}
+
 	http.HandleFunc("/", makeHandler(homeHandler))
 	http.HandleFunc("/view/", makeHandler(viewHandler))
 	http.HandleFunc("/edit/", makeHandler(editHandler))
@@ -128,8 +135,8 @@ func main() {
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("assets/"))))
 
 	fmt.Println("")
-	fmt.Println("Server started... listening on port 8080")
-	fmt.Println("URL: http://localhost:8080/")
+	fmt.Println("Server started... listening on port " + port)
+	fmt.Println("URL: http://localhost:" + port + "/")
 	fmt.Println("")
 	// fmt.Println("*************************************")
 	// fmt.Println("Create a new page by visiting this url with the desired page name:")
@@ -140,7 +147,7 @@ func main() {
 	// listExistingPages(fetchPageList())
 	fmt.Println("")
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
 
 // Check for files in the /pages subfolder and prints their URLs
