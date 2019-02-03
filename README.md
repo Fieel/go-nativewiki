@@ -25,7 +25,7 @@ URL: http://localhost:5000/
 
 Heroku: https://go-vanillawiki.herokuapp.com/
 
-Private web server: _WIP_
+Private web server: http://vanillawiki.fieel.space/
 
 ## Dependencies
 
