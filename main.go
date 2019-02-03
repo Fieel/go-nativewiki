@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"html/template"
 	"io/ioutil"
 	"log"
@@ -52,10 +51,10 @@ func main() {
 	// For static files
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("assets/"))))
 
-	fmt.Println("")
-	fmt.Println("Server started... listening on port " + port)
-	fmt.Println("URL: http://localhost:" + port + "/")
-	fmt.Println("")
+	log.Println("")
+	log.Println("Server started... listening on port " + port)
+	log.Println("URL: http://localhost:" + port + "/")
+	log.Println("")
 
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
@@ -63,6 +62,7 @@ func main() {
 // Create handler, based on given url path
 func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("%s %s %s\n", r.RemoteAddr, r.Method, r.URL)
 		m := validPath.FindStringSubmatch(r.URL.Path)
 		if m == nil && !(r.URL.Path == "//") {
 			http.NotFound(w, r)
@@ -76,7 +76,7 @@ func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.Handl
 func homeHandler(w http.ResponseWriter, r *http.Request, title string) {
 	p, err := loadPage("Home")
 	if err != nil {
-		fmt.Println("homeHandler() error: ", err)
+		log.Println("homeHandler() error: ", err)
 		return
 	}
 	renderTemplate(w, "home", p)
@@ -87,7 +87,7 @@ func homeHandler(w http.ResponseWriter, r *http.Request, title string) {
 func viewHandler(w http.ResponseWriter, r *http.Request, title string) {
 	p, err := loadPage(title)
 	if err != nil {
-		fmt.Println("viewHandler() error: ", err)
+		log.Println("viewHandler() error: ", err)
 		http.Redirect(w, r, "/edit/"+title, http.StatusFound)
 		return
 	}
@@ -98,7 +98,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request, title string) {
 func editHandler(w http.ResponseWriter, r *http.Request, title string) {
 	p, err := loadPage(title)
 	if err != nil {
-		fmt.Println("editHandler() error: ", err)
+		log.Println("editHandler() error: ", err)
 		p = &Page{Title: title}
 	}
 	renderTemplate(w, "edit", p)
@@ -110,7 +110,7 @@ func saveHandler(w http.ResponseWriter, r *http.Request, title string) {
 	p := &Page{Title: title, Body: []byte(body)}
 	err := p.save()
 	if err != nil {
-		fmt.Println("saveHandler() error: ", err)
+		log.Println("saveHandler() error: ", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -121,7 +121,7 @@ func saveHandler(w http.ResponseWriter, r *http.Request, title string) {
 func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
 	err := templates.ExecuteTemplate(w, tmpl+".html", p)
 	if err != nil {
-		fmt.Println("renderTemplate() error: ", err)
+		log.Println("renderTemplate() error: ", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
@@ -132,7 +132,7 @@ func loadPage(title string) (*Page, error) {
 	body, err := ioutil.ReadFile(filename)
 	list := fetchPageList()
 	if err != nil {
-		fmt.Println("loadPage() error: ", err)
+		log.Println("loadPage() error: ", err)
 		return nil, err
 	}
 	return &Page{Title: title, Body: body, List: list}, nil
@@ -150,14 +150,14 @@ func fetchPageList() []string {
 
 	f, err := os.Open(dirname)
 	if err != nil {
-		fmt.Println("listExistingPages() error: ", err)
+		log.Println("listExistingPages() error: ", err)
 		log.Fatal(err)
 	}
 
 	files, err := f.Readdir(-1)
 	f.Close()
 	if err != nil {
-		fmt.Println("listExistingPages() error: ", err)
+		log.Println("listExistingPages() error: ", err)
 		log.Fatal(err)
 	}
 
@@ -175,6 +175,6 @@ func listExistingPages(files []string) {
 	// cycle all files in the folder
 	for _, file := range files {
 		// extract name without extension and print it
-		fmt.Println("http://localhost:8080/view/" + strings.Split(file, ".")[0])
+		log.Println("http://localhost:8080/view/" + strings.Split(file, ".")[0])
 	}
 }
