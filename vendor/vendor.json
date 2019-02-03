@@ -1,6 +1,7 @@
 {
-    "comment": "",
-    "package": [],
     "rootPath": "go-nativewebserver",
-    "goVersion": "1.11.5"
+    "heroku": {
+        "install" : [ "./..." ],
+        "goVersion": "go1.11.5"
+    }
 }

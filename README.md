@@ -1,6 +1,11 @@
-# go-nativewebserver
+# Go-vanillawiki
 
-Simple implementation of a web server using native Go components, no external frameworks, no frills or whatsoever.
+Simple implementation of a Go webserver using only native Go components, no external frameworks or libraries, no frills or whatsoever.
+
+The server serves a minimalist mini-wiko editable by anyone.
+
+
+<img align="center" src="docs/devices-mock-screenshot.PNG">
 
 Run the webserver as such:
 
@@ -12,11 +17,15 @@ You'll see the output in your terminal:
 ```bash
 $ go run main.go
 
-Server started... listening on post 8080
-URL: http://localhost:8080/
+Server started... listening on post 5000
+URL: http://localhost:5000/
 ```
 
-#
+## Demo
+
+Heroku: https://go-vanillawiki.herokuapp.com/
+
+Private web server: _WIP_
 
 ## Dependencies
 

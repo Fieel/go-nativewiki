@@ -18,22 +18,68 @@ type Page struct {
 	Body  []byte
 }
 
-// Used to write files on disk, in this case txt files
-func (p *Page) save() error {
-	filename := "./pages/" + p.Title + ".txt"
-	return ioutil.WriteFile(filename, p.Body, 0600)
+// Available html templates
+var templates = template.Must(template.ParseFiles(
+	"./templates/home.html",
+	"./templates/edit.html",
+	"./templates/view.html",
+	"./templates/header.html",
+	"./templates/footer.html",
+))
+
+// Accept only following paths
+// /
+// /view/{pagename}
+// /edit/{pagename}
+// /save/{pagename}
+var validPath = regexp.MustCompile("(^/(edit|save|view)/([a-zA-Z0-9]+))|(^/)$")
+
+// Main function, program starts here
+func main() {
+
+	// Dynamic port (used by Heroku for example)
+	port := os.Getenv("PORT")
+	if port == "" {
+		log.Println("$PORT must be set, using 5000 as default...")
+		port = "5000"
+	}
+
+	http.HandleFunc("/", makeHandler(homeHandler))
+	http.HandleFunc("/view/", makeHandler(viewHandler))
+	http.HandleFunc("/edit/", makeHandler(editHandler))
+	http.HandleFunc("/save/", makeHandler(saveHandler))
+
+	// For static files
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("assets/"))))
+
+	fmt.Println("")
+	fmt.Println("Server started... listening on port " + port)
+	fmt.Println("URL: http://localhost:" + port + "/")
+	fmt.Println("")
+
+	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
 
-// Used in the handlers to load pages
-func loadPage(title string) (*Page, error) {
-	filename := "./pages/" + title + ".txt"
-	body, err := ioutil.ReadFile(filename)
-	list := fetchPageList()
-	if err != nil {
-		fmt.Println("loadPage() error: ", err)
-		return nil, err
+// Create handler, based on given url path
+func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		m := validPath.FindStringSubmatch(r.URL.Path)
+		if m == nil && !(r.URL.Path == "//") {
+			http.NotFound(w, r)
+			return
+		}
+		fn(w, r, m[3])
 	}
-	return &Page{Title: title, Body: body, List: list}, nil
+}
+
+// Loads the homepage at /
+func homeHandler(w http.ResponseWriter, r *http.Request, title string) {
+	p, err := loadPage("Home")
+	if err != nil {
+		fmt.Println("homeHandler() error: ", err)
+		return
+	}
+	renderTemplate(w, "home", p)
 }
 
 // Returns the HTML view template filled with data
@@ -71,94 +117,34 @@ func saveHandler(w http.ResponseWriter, r *http.Request, title string) {
 	http.Redirect(w, r, "/view/"+title, http.StatusFound)
 }
 
-var templates = template.Must(template.ParseFiles(
-	"./templates/home.html",
-	"./templates/edit.html",
-	"./templates/view.html",
-	"./templates/header.html",
-	"./templates/footer.html",
-))
-
 // Inject data in the HTML template and render it
 func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
-
 	err := templates.ExecuteTemplate(w, tmpl+".html", p)
-
 	if err != nil {
 		fmt.Println("renderTemplate() error: ", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 
-// Accept only following paths
-// /
-// /view/{pagename}
-// /edit/{pagename}
-// /save/{pagename}
-var validPath = regexp.MustCompile("(^/(edit|save|view)/([a-zA-Z0-9]+))|(^/)$")
-
-// Create handler, based on given url path
-func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		m := validPath.FindStringSubmatch(r.URL.Path)
-		if m == nil && !(r.URL.Path == "//") {
-			http.NotFound(w, r)
-			return
-		}
-		fn(w, r, m[3])
-	}
-}
-
-// Loads the homepage at /
-func homeHandler(w http.ResponseWriter, r *http.Request, title string) {
-	p, err := loadPage("Home")
+// Used in the handlers to load pages
+func loadPage(title string) (*Page, error) {
+	filename := "./pages/" + title + ".txt"
+	body, err := ioutil.ReadFile(filename)
+	list := fetchPageList()
 	if err != nil {
-		fmt.Println("homeHandler() error: ", err)
-		return
+		fmt.Println("loadPage() error: ", err)
+		return nil, err
 	}
-	renderTemplate(w, "home", p)
+	return &Page{Title: title, Body: body, List: list}, nil
 }
 
-// Main function, program starts here
-func main() {
-
-	port := os.Getenv("PORT")
-	if port == "" {
-		log.Println("$PORT must be set, using 5000 as default...")
-		port = "5000"
-	}
-
-	http.HandleFunc("/", makeHandler(homeHandler))
-	http.HandleFunc("/view/", makeHandler(viewHandler))
-	http.HandleFunc("/edit/", makeHandler(editHandler))
-	http.HandleFunc("/save/", makeHandler(saveHandler))
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("assets/"))))
-
-	fmt.Println("")
-	fmt.Println("Server started... listening on port " + port)
-	fmt.Println("URL: http://localhost:" + port + "/")
-	fmt.Println("")
-	// fmt.Println("*************************************")
-	// fmt.Println("Create a new page by visiting this url with the desired page name:")
-	// fmt.Println("localhost:8080/view/{newPageName}")
-	// fmt.Println("*************************************")
-	// fmt.Println("")
-	// fmt.Println("List of existing pages:")
-	// listExistingPages(fetchPageList())
-	fmt.Println("")
-
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+// Used to write files on disk, in this case txt files
+func (p *Page) save() error {
+	filename := "./pages/" + p.Title + ".txt"
+	return ioutil.WriteFile(filename, p.Body, 0600)
 }
 
-// Check for files in the /pages subfolder and prints their URLs
-func listExistingPages(files []string) {
-	// cycle all files in the folder
-	for _, file := range files {
-		// extract name without extension and print it
-		fmt.Println("http://localhost:8080/view/" + strings.Split(file, ".")[0])
-	}
-}
-
+// reads the content of the /pages directory and returns a Slice of strings representing the page names
 func fetchPageList() []string {
 	dirname := "./pages"
 
@@ -177,10 +163,18 @@ func fetchPageList() []string {
 
 	// Stores the list of available pages to show on the homepage
 	var pagesSlice []string
-
 	for _, file := range files {
 		pagesSlice = append(pagesSlice, strings.Split(file.Name(), ".")[0])
 	}
 
 	return pagesSlice
+}
+
+// Check for files in the /pages subfolder and prints their URLs
+func listExistingPages(files []string) {
+	// cycle all files in the folder
+	for _, file := range files {
+		// extract name without extension and print it
+		fmt.Println("http://localhost:8080/view/" + strings.Split(file, ".")[0])
+	}
 }
