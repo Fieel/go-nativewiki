@@ -1,1 +1,1 @@
-web: go-nativewebserver
+web: go-vanillawiki

@@ -1,5 +1,5 @@
 {
-    "rootPath": "go-nativewebserver",
+    "rootPath": "go-vanillawiki",
     "heroku": {
         "install" : [ "./..." ],
         "goVersion": "go1.11"

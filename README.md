@@ -2,7 +2,7 @@
 
 Simple implementation of a Go webserver using only native Go components, no external frameworks or libraries, no frills or whatsoever.
 
-The server serves a minimalist mini-wiko editable by anyone.
+The server serves a minimalist wiki editable by anyone.
 
 
 <img align="center" src="docs/devices-mock-screenshot.PNG">
